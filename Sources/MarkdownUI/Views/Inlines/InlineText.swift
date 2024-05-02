@@ -5,6 +5,7 @@ struct InlineText: View {
   @Environment(\.baseURL) private var baseURL
   @Environment(\.imageBaseURL) private var imageBaseURL
   @Environment(\.theme) private var theme
+  @Environment(\.renderOptions) private var renderOptions
 
   @State private var inlineImages: [String: Image] = [:]
 
@@ -26,7 +27,8 @@ struct InlineText: View {
           link: self.theme.link
         ),
         images: self.inlineImages,
-        attributes: attributes
+        attributes: attributes, 
+        renderOptions: renderOptions
       )
     }
     .task(id: self.inlines) {

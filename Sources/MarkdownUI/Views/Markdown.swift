@@ -195,6 +195,7 @@ public struct Markdown: View {
   private let content: MarkdownContent
   private let baseURL: URL?
   private let imageBaseURL: URL?
+  private let renderOptions: Set<RenderOptions>
 
   /// Creates a Markdown view from a Markdown content value.
   /// - Parameters:
@@ -203,10 +204,12 @@ public struct Markdown: View {
   ///              URLs absolute. The default is `nil`.
   ///   - imageBaseURL: The base URL to use when resolving Markdown image URLs. If this value is `nil`, the initializer will
   ///                   determine image URLs using the `baseURL` parameter. The default is `nil`.
-  public init(_ content: MarkdownContent, baseURL: URL? = nil, imageBaseURL: URL? = nil) {
+  ///   - renderOptions: Additional options when rendering. The default is empty..
+    public init(_ content: MarkdownContent, baseURL: URL? = nil, imageBaseURL: URL? = nil, renderOptions: Set<RenderOptions> = []) {
     self.content = content
     self.baseURL = baseURL
     self.imageBaseURL = imageBaseURL ?? baseURL
+    self.renderOptions = renderOptions
   }
 
   public var body: some View {
@@ -219,6 +222,7 @@ public struct Markdown: View {
     .textStyle(self.text)
     .environment(\.baseURL, self.baseURL)
     .environment(\.imageBaseURL, self.imageBaseURL)
+    .environment(\.renderOptions, self.renderOptions)
   }
 
   private var blocks: [BlockNode] {
@@ -234,8 +238,9 @@ extension Markdown {
   ///              URLs absolute. The default is `nil`.
   ///   - imageBaseURL: The base URL to use when resolving Markdown image URLs. If this value is `nil`, the initializer will
   ///                   determine image URLs using the `baseURL` parameter. The default is `nil`.
-  public init(_ markdown: String, baseURL: URL? = nil, imageBaseURL: URL? = nil) {
-    self.init(MarkdownContent(markdown), baseURL: baseURL, imageBaseURL: imageBaseURL)
+  ///   - renderOptions: Additional options when rendering. The default is empty..
+  public init(_ markdown: String, baseURL: URL? = nil, imageBaseURL: URL? = nil, renderOptions: Set<RenderOptions> = []) {
+    self.init(MarkdownContent(markdown), baseURL: baseURL, imageBaseURL: imageBaseURL, renderOptions: renderOptions)
   }
 
   /// Creates a Markdown view composed of any number of blocks.
@@ -274,13 +279,15 @@ extension Markdown {
   ///              URLs absolute. The default is `nil`.
   ///   - imageBaseURL: The base URL to use when resolving Markdown image URLs. If this value is `nil`, the initializer will
   ///                   determine image URLs using the `baseURL` parameter. The default is `nil`.
+  ///   - renderOptions: Additional options when rendering. The default is empty..
   ///   - content: A Markdown content builder that returns the blocks that form the Markdown content.
   public init(
     baseURL: URL? = nil,
     imageBaseURL: URL? = nil,
+    renderOptions: Set<RenderOptions> = [],
     @MarkdownContentBuilder content: () -> MarkdownContent
   ) {
-    self.init(content(), baseURL: baseURL, imageBaseURL: imageBaseURL)
+    self.init(content(), baseURL: baseURL, imageBaseURL: imageBaseURL, renderOptions: renderOptions)
   }
 }
 

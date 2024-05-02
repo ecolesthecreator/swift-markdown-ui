@@ -5,13 +5,15 @@ extension Sequence where Element == InlineNode {
     baseURL: URL?,
     textStyles: InlineTextStyles,
     images: [String: Image],
-    attributes: AttributeContainer
+    attributes: AttributeContainer,
+    renderOptions: Set<RenderOptions>
   ) -> Text {
     var renderer = TextInlineRenderer(
       baseURL: baseURL,
       textStyles: textStyles,
       images: images,
-      attributes: attributes
+      attributes: attributes, 
+      renderOptions: renderOptions
     )
     renderer.render(self)
     return renderer.result
@@ -26,17 +28,20 @@ private struct TextInlineRenderer {
   private let images: [String: Image]
   private let attributes: AttributeContainer
   private var shouldSkipNextWhitespace = false
+  private var renderOptions: Set<RenderOptions> = []
 
   init(
     baseURL: URL?,
     textStyles: InlineTextStyles,
     images: [String: Image],
-    attributes: AttributeContainer
+    attributes: AttributeContainer,
+    renderOptions: Set<RenderOptions>
   ) {
     self.baseURL = baseURL
     self.textStyles = textStyles
     self.images = images
     self.attributes = attributes
+    self.renderOptions = renderOptions
   }
 
   mutating func render<S: Sequence>(_ inlines: S) where S.Element == InlineNode {
@@ -50,7 +55,11 @@ private struct TextInlineRenderer {
     case .text(let content):
       self.renderText(content)
     case .softBreak:
-      self.renderSoftBreak()
+      if renderOptions.contains(.renderSoftBreakAsHardBreak) {
+        self.defaultRender(.lineBreak)
+      } else {
+        renderSoftBreak()
+      }
     case .html(let content):
       self.renderHTML(content)
     case .image(let source, _):
@@ -104,7 +113,8 @@ private struct TextInlineRenderer {
         inline.renderAttributedString(
           baseURL: self.baseURL,
           textStyles: self.textStyles,
-          attributes: self.attributes
+          attributes: self.attributes, 
+          renderOptions: renderOptions
         )
       )
   }

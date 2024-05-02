@@ -4,12 +4,14 @@ extension InlineNode {
   func renderAttributedString(
     baseURL: URL?,
     textStyles: InlineTextStyles,
-    attributes: AttributeContainer
+    attributes: AttributeContainer,
+    renderOptions: Set<RenderOptions>
   ) -> AttributedString {
     var renderer = AttributedStringInlineRenderer(
       baseURL: baseURL,
       textStyles: textStyles,
-      attributes: attributes
+      attributes: attributes,
+      renderOptions: renderOptions
     )
     renderer.render(self)
     return renderer.result.resolvingFonts()
@@ -23,11 +25,13 @@ private struct AttributedStringInlineRenderer {
   private let textStyles: InlineTextStyles
   private var attributes: AttributeContainer
   private var shouldSkipNextWhitespace = false
+  private var renderOptions: Set<RenderOptions>
 
-  init(baseURL: URL?, textStyles: InlineTextStyles, attributes: AttributeContainer) {
+    init(baseURL: URL?, textStyles: InlineTextStyles, attributes: AttributeContainer, renderOptions: Set<RenderOptions>) {
     self.baseURL = baseURL
     self.textStyles = textStyles
     self.attributes = attributes
+    self.renderOptions = renderOptions
   }
 
   mutating func render(_ inline: InlineNode) {
@@ -35,7 +39,11 @@ private struct AttributedStringInlineRenderer {
     case .text(let content):
       self.renderText(content)
     case .softBreak:
-      self.renderSoftBreak()
+      if renderOptions.contains(.renderSoftBreakAsHardBreak) {
+          self.renderLineBreak()
+      } else {
+        self.renderSoftBreak()
+      }
     case .lineBreak:
       self.renderLineBreak()
     case .code(let content):
